@@ -1,0 +1,234 @@
+[
+    {
+        "id": "42d912b0b5e9292f",
+        "type": "function",
+        "z": "57d5c984.a0e7b",
+        "name": "array of urls",
+        "func": "msg.url=[\n    \"https://api.enerest.world/api/v1/iplon/visualization/plant/622a8cd2-e3d1-11eb-a4c6-960000a1d181/channels?channelNames[]=ProdPac&dateFrom=today&dateTo=today\",\n    \"https://api.enerest.world/api/v1/iplon/visualization/plant/c18022f8-8d26-11eb-a8be-001e6799788c/channels?channelNames[]=ProdPac&dateFrom=today&dateTo=today\",\n    \"https://api.enerest.world/api/v1/iplon/visualization/plant/350abfbe-8d27-11eb-a8be-001e6799788c/channels?channelNames[]=ProdPac&dateFrom=today&dateTo=today\",\n]\nfor(var i = 0; i <msg.url.length; i++)\n{ \n    var url=msg.url[i]\n \n    var obj={\n    url\n}\n node.send(obj);\n}\n\nreturn null\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 250,
+        "y": 640,
+        "wires": [
+            [
+                "04fa9912910b3998"
+            ]
+        ]
+    },
+    {
+        "id": "659813364ba7f914",
+        "type": "http request",
+        "z": "57d5c984.a0e7b",
+        "name": "GET Production Today",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "senderr": false,
+        "x": 620,
+        "y": 640,
+        "wires": [
+            [
+                "bd9b5a552840651d"
+            ]
+        ]
+    },
+    {
+        "id": "75100aeca690d368",
+        "type": "inject",
+        "z": "57d5c984.a0e7b",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 100,
+        "y": 640,
+        "wires": [
+            [
+                "42d912b0b5e9292f"
+            ]
+        ]
+    },
+    {
+        "id": "04fa9912910b3998",
+        "type": "function",
+        "z": "57d5c984.a0e7b",
+        "name": "url and token",
+        "func": "msg.url\nmsg.headers = {\n  'Authorization' : flow.get(\"bearer_token\")\n};\nreturn msg;\n\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 410,
+        "y": 640,
+        "wires": [
+            [
+                "659813364ba7f914"
+            ]
+        ]
+    },
+    {
+        "id": "bf3cce8cd6edd955",
+        "type": "comment",
+        "z": "57d5c984.a0e7b",
+        "name": "reading multiple url's",
+        "info": "",
+        "x": 170,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "6040797a85f1d89b",
+        "type": "function",
+        "z": "57d5c984.a0e7b",
+        "name": "iteraton",
+        "func": "let plantObj\n\nplantObj = []\n//for(j =0; j < msg.payload.length;j++)\nfor (i =0; i < msg.payload[0].timestamp.length;i++)\n{\nvar obj={\n    Timestamp:msg.payload[0].timestamp[i],\n\"Swelect API_Test_Plant\":msg.payload[0].swelect_api_values[i],\n\"Swelect SBI_Admin_Office_Vizag\":msg.payload[0].swelect_sbi[i],\n\"OMPL 2 MWp Floating Plant\":msg.payload[0].ompl_2MWp[i],\n}\n\nplantObj.push(obj)\n}\nmsg.payload =plantObj\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 700,
+        "wires": [
+            [
+                "614ce874b13915fe"
+            ]
+        ]
+    },
+    {
+        "id": "614ce874b13915fe",
+        "type": "csv",
+        "z": "57d5c984.a0e7b",
+        "name": "",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "once",
+        "multi": "mult",
+        "ret": "\\n",
+        "temp": "",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": true,
+        "x": 650,
+        "y": 700,
+        "wires": [
+            [
+                "163b1a6a76f8b566"
+            ]
+        ]
+    },
+    {
+        "id": "bfc0f9a8f37dfdb3",
+        "type": "function",
+        "z": "57d5c984.a0e7b",
+        "name": "object to array",
+        "func": "\n let plantObj\n\nplantObj = []\n\n//for (i =0; i < msg.payload.length;i++)\n//{\n var swelect_api=msg.payload.Swelect_API_Test_Plant[0].dataPoints\n var keys=Object.keys(swelect_api);\n var swelect_api_values=Object.values(swelect_api);\n var swelect_sbi=Object.values(msg.payload.Swelect_SBI_Admin_Office_Vizag[0].dataPoints);\n var ompl_2MWp=Object.values(msg.payload.OMPL_2_MWp_Floating_Plant[0].dataPoints);\nvar obj={\n  timestamp:keys,\n       swelect_api_values,\n       swelect_sbi,\n       ompl_2MWp\n\n}\n\nplantObj.push(obj)\n//}\nmsg.payload =plantObj\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 320,
+        "y": 700,
+        "wires": [
+            [
+                "6040797a85f1d89b"
+            ]
+        ]
+    },
+    {
+        "id": "163b1a6a76f8b566",
+        "type": "file",
+        "z": "57d5c984.a0e7b",
+        "name": "sdsapi.csv",
+        "filename": "/usr/src/node-red/sdsapi.csv",
+        "appendNewline": false,
+        "createDir": true,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 830,
+        "y": 700,
+        "wires": [
+            [
+                "166ab4be5758d059"
+            ]
+        ]
+    },
+    {
+        "id": "c4471723d5932bdf",
+        "type": "debug",
+        "z": "57d5c984.a0e7b",
+        "name": "url",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1010,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "bd9b5a552840651d",
+        "type": "function",
+        "z": "57d5c984.a0e7b",
+        "name": "combine",
+        "func": "context.data = context.data || {};\nswitch(msg.payload[0].id){\n    case \"62d457c9108bfeaa64adf849\":\n        context.data.Swelect_API_Test_Plant = msg.payload;\n        msg = null;\n        break;\n        \n    case \"62d45694c7d905f346dda4ae\":\n        context.data.Swelect_SBI_Admin_Office_Vizag = msg.payload;\n        msg = null;\n        break;\n    \n    case \"62d45678a881df143bcdad05\":\n        context.data.OMPL_2_MWp_Floating_Plant = msg.payload;\n        msg = null;\n        break;\n}\nif(context.data.Swelect_API_Test_Plant != null && context.data.Swelect_SBI_Admin_Office_Vizag != null&& context.data.OMPL_2_MWp_Floating_Plant != null){\n    var data_combine = {\n        \"Swelect_API_Test_Plant\": context.data.Swelect_API_Test_Plant,\n        \"Swelect_SBI_Admin_Office_Vizag\":context.data.Swelect_SBI_Admin_Office_Vizag,\n        \"OMPL_2_MWp_Floating_Plant\":context.data.OMPL_2_MWp_Floating_Plant\n        }\n    context.data = null\n    return {payload: data_combine};\n}  ",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 840,
+        "y": 640,
+        "wires": [
+            [
+                "c4471723d5932bdf",
+                "bfc0f9a8f37dfdb3"
+            ]
+        ]
+    },
+    {
+        "id": "166ab4be5758d059",
+        "type": "debug",
+        "z": "57d5c984.a0e7b",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 650,
+        "y": 760,
+        "wires": []
+    }
+]
